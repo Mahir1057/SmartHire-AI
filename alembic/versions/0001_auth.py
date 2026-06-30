@@ -9,6 +9,7 @@ from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.dialects import postgresql
 
 revision: str = "0001_auth"
 down_revision: str | None = None
@@ -17,7 +18,7 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    user_role = sa.Enum("candidate", "recruiter", "admin", name="userrole")
+    user_role = postgresql.ENUM("candidate", "recruiter", "admin", name="userrole", create_type=False)
     user_role.create(op.get_bind(), checkfirst=True)
 
     op.create_table(
@@ -64,4 +65,3 @@ def downgrade() -> None:
     op.drop_index("ix_users_email", table_name="users")
     op.drop_table("users")
     sa.Enum(name="userrole").drop(op.get_bind(), checkfirst=True)
-

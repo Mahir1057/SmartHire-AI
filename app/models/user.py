@@ -35,6 +35,11 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+    resumes: Mapped[list["Resume"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    interview_sessions: Mapped[list["InterviewSession"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
 
 
 class RefreshToken(Base):
@@ -61,4 +66,3 @@ class PasswordResetToken(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     user: Mapped[User] = relationship(back_populates="password_reset_tokens")
-

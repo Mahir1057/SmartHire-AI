@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     password_reset_token_expire_minutes: int = 30
     backend_cors_origins: list[str] = ["http://localhost:3000", "http://localhost:8000"]
     rate_limit_per_minute: int = 120
+    local_storage_path: str = "storage"
+    openai_api_key: str | None = None
+    openai_model: str = "gpt-4o-mini"
+    openai_base_url: str = "https://api.openai.com/v1"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
@@ -27,4 +31,3 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
-
