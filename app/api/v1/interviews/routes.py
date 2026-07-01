@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, File, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db, require_roles
@@ -7,6 +7,8 @@ from app.models.user import User, UserRole
 from app.repositories.interview_repository import InterviewRepository
 from app.repositories.resume_repository import ResumeRepository
 from app.schemas.interview import (
+    CandidateAnswerCreate,
+    CandidateAnswerRead,
     InterviewCreate,
     InterviewListResponse,
     InterviewQuestionRead,
@@ -84,3 +86,44 @@ def finish_interview(
     service: InterviewService = Depends(get_interview_service),
 ):
     return service.finish_interview(current_user, interview_id)
+
+
+@router.post("/{interview_id}/answers", response_model=CandidateAnswerRead, status_code=status.HTTP_201_CREATED)
+def save_answer(
+    interview_id: int,
+    payload: CandidateAnswerCreate,
+    current_user: User = Depends(require_roles(UserRole.candidate)),
+    service: InterviewService = Depends(get_interview_service),
+):
+    return service.save_answer(current_user, interview_id, payload)
+
+
+@router.get("/{interview_id}/answers", response_model=list[CandidateAnswerRead])
+def list_answers(
+    interview_id: int,
+    current_user: User = Depends(get_current_user),
+    service: InterviewService = Depends(get_interview_service),
+):
+    return service.list_answers(current_user, interview_id)
+
+
+@router.post("/{interview_id}/answers/{answer_id}/audio", response_model=CandidateAnswerRead)
+async def upload_answer_audio(
+    interview_id: int,
+    answer_id: int,
+    file: UploadFile = File(...),
+    current_user: User = Depends(require_roles(UserRole.candidate)),
+    service: InterviewService = Depends(get_interview_service),
+):
+    return await service.upload_answer_audio(current_user, interview_id, answer_id, file)
+
+
+@router.post("/{interview_id}/answers/{answer_id}/video", response_model=CandidateAnswerRead)
+async def upload_answer_video(
+    interview_id: int,
+    answer_id: int,
+    file: UploadFile = File(...),
+    current_user: User = Depends(require_roles(UserRole.candidate)),
+    service: InterviewService = Depends(get_interview_service),
+):
+    return await service.upload_answer_video(current_user, interview_id, answer_id, file)

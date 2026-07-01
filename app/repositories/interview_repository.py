@@ -1,7 +1,7 @@
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.models.interview import InterviewQuestion, InterviewSession, InterviewStatus, InterviewType
+from app.models.interview import CandidateAnswer, InterviewQuestion, InterviewSession, InterviewStatus, InterviewType
 
 
 class InterviewRepository:
@@ -24,10 +24,35 @@ class InterviewRepository:
     def get_by_id(self, interview_id: int) -> InterviewSession | None:
         statement = (
             select(InterviewSession)
-            .options(selectinload(InterviewSession.questions))
+            .options(selectinload(InterviewSession.questions), selectinload(InterviewSession.answers))
             .where(InterviewSession.id == interview_id)
         )
         return self.db.scalar(statement)
+
+    def get_question_by_id(self, question_id: int) -> InterviewQuestion | None:
+        return self.db.get(InterviewQuestion, question_id)
+
+    def get_answer_by_id(self, answer_id: int) -> CandidateAnswer | None:
+        return self.db.get(CandidateAnswer, answer_id)
+
+    def get_answer_for_question(self, interview_id: int, question_id: int) -> CandidateAnswer | None:
+        statement = select(CandidateAnswer).where(
+            CandidateAnswer.interview_id == interview_id,
+            CandidateAnswer.question_id == question_id,
+        )
+        return self.db.scalar(statement)
+
+    def list_answers(self, interview_id: int) -> list[CandidateAnswer]:
+        statement = select(CandidateAnswer).where(CandidateAnswer.interview_id == interview_id).order_by(
+            CandidateAnswer.created_at.asc()
+        )
+        return list(self.db.scalars(statement))
+
+    def save_answer(self, answer: CandidateAnswer) -> CandidateAnswer:
+        self.db.add(answer)
+        self.db.commit()
+        self.db.refresh(answer)
+        return answer
 
     def list_for_user(
         self,

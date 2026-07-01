@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text, func
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -58,6 +58,10 @@ class InterviewSession(Base):
         cascade="all, delete-orphan",
         order_by="InterviewQuestion.order_index",
     )
+    answers: Mapped[list["CandidateAnswer"]] = relationship(
+        back_populates="interview",
+        cascade="all, delete-orphan",
+    )
 
 
 class InterviewQuestion(Base):
@@ -77,3 +81,34 @@ class InterviewQuestion(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     interview: Mapped[InterviewSession] = relationship(back_populates="questions")
+    answers: Mapped[list["CandidateAnswer"]] = relationship(back_populates="question", cascade="all, delete-orphan")
+
+
+class CandidateAnswer(Base):
+    __tablename__ = "candidate_answers"
+    __table_args__ = (UniqueConstraint("interview_id", "question_id", name="uq_candidate_answers_interview_question"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    interview_id: Mapped[int] = mapped_column(
+        ForeignKey("interview_sessions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    question_id: Mapped[int] = mapped_column(
+        ForeignKey("interview_questions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    transcript: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    audio_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    video_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    interview: Mapped[InterviewSession] = relationship(back_populates="answers")
+    question: Mapped[InterviewQuestion] = relationship(back_populates="answers")

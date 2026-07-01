@@ -23,6 +23,23 @@ class InterviewQuestionRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class CandidateAnswerCreate(BaseModel):
+    question_id: int
+    transcript: str = Field(min_length=1, max_length=10000)
+
+
+class CandidateAnswerRead(BaseModel):
+    id: int
+    interview_id: int
+    question_id: int
+    transcript: str
+    audio_path: str | None
+    video_path: str | None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class InterviewSessionRead(BaseModel):
     id: int
     user_id: int
@@ -35,6 +52,7 @@ class InterviewSessionRead(BaseModel):
     completed_at: datetime | None
     created_at: datetime
     questions: list[InterviewQuestionRead] = []
+    answers: list[CandidateAnswerRead] = []
 
     model_config = ConfigDict(from_attributes=True)
 

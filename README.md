@@ -30,6 +30,14 @@ The third increment implements **Module 3: AI Interview Generation and Interview
 - Start and finish interview sessions
 - List, filter, and inspect interview sessions
 
+The fourth increment implements **Module 4: Candidate Answers and Interview Media**:
+
+- Save candidate answer transcripts
+- List saved answers
+- Upload answer audio files
+- Upload answer video files
+- Enforce in-progress interview state for answer/media writes
+
 Future platform modules are represented in the package layout but intentionally not implemented yet.
 
 ## Local Setup
@@ -67,6 +75,19 @@ Content-Type: application/json
   "email": "ada@example.com",
   "password": "StrongPass123!",
   "role": "candidate"
+}
+```
+
+Save answer:
+
+```http
+POST /api/v1/interviews/1/answers
+Authorization: Bearer ACCESS_TOKEN
+Content-Type: application/json
+
+{
+  "question_id": 1,
+  "transcript": "I would start by clarifying requirements, then design the API contract..."
 }
 ```
 
